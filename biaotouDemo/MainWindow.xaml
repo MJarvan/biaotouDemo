@@ -6,12 +6,17 @@
         xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk"  
         xmlns:local="clr-namespace:biaotouDemo"
         mc:Ignorable="d"
-        Height="600" Width="800" Title="表头demo" FontSize="15">
+        Height="600" Width="1600" Title="表头demo" FontSize="15" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="200" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        
+        <Grid Name="grid" Grid.Row="0">
+            
+        </Grid>
+        <DataGrid Name="datagrid" Grid.Row="1" HeadersVisibility="None">
+            
+        </DataGrid>
     </Grid>
 </Window>
