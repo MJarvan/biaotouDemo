@@ -108,37 +108,16 @@ namespace biaotouDemo
                 border.SetValue(Grid.ColumnProperty, i);
             }
         }
-
+        public static int intTotal = 0;
         private void AddFirstbiaotou()
         {
-
+            int intColumnSpan = 0;
             int rowsCount = Bt1Datatable.Rows.Count;
+            bool boolIsAdd = false;
             for (int i = 0; i < rowsCount; i++)
             {
                 int no = Convert.ToInt32(Bt1Datatable.Rows[i]["No"].ToString().Trim());
                 string str = Bt1Datatable.Rows[i]["Name"].ToString().Trim();
-                //if( str == string.Empty )
-                //{
-                //    ColumnDefinition cd = new ColumnDefinition();
-                //    GridLength width = new GridLength(35);
-                //    cd.Width = width;
-                //    grid.ColumnDefinitions.Add(cd);
-                //}
-                //else if ( i + 1 == rowsCount)
-                //{
-                //    ColumnDefinition cd = new ColumnDefinition();
-                //    GridLength width = new GridLength(1, GridUnitType.Star);
-                //    cd.Width = width;
-                //    grid.ColumnDefinitions.Add(cd);
-                //}
-                //else
-                //{
-                //    ColumnDefinition cd = new ColumnDefinition();
-                //    GridLength width = new GridLength(1, GridUnitType.Auto);
-                //    cd.Width = width;
-                //    grid.ColumnDefinitions.Add(cd);
-                //}
-                
                 TextBlock textblock = new TextBlock();
                 textblock.Tag = no;
                 textblock.Text = str;
@@ -160,15 +139,36 @@ namespace biaotouDemo
                     Border element = GetChildObject<Border>(this.grid, strBorderName);
                     if (Convert.ToInt32(element.Tag) == no)
                     {
-                        border.Width = border.Width + element.ActualWidth;
+                        intColumnSpan++;
                     }
                 }
 
                 grid.Children.Add(border);
-                border.SetValue(Grid.RowProperty, 0);
-                border.SetValue(Grid.ColumnProperty, i);
-            }
 
+                if (intColumnSpan == 1 && boolIsAdd == false)
+                {
+                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.ColumnProperty, i);
+                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                }
+                else if (intColumnSpan != 1 && boolIsAdd == false)
+                {
+                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.ColumnProperty, i);
+                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    boolIsAdd = true;
+                    intTotal = i + intColumnSpan;
+                }
+                else /*if (intColumnSpan != 1 && boolIsAdd == true)*/
+                {
+                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.ColumnProperty, intTotal);
+                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    intTotal = intTotal + intColumnSpan;
+                }
+
+                intColumnSpan = 0;
+            }
         }
 
         #region 增加数据
