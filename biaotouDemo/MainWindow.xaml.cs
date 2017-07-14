@@ -37,6 +37,14 @@ namespace biaotouDemo
             set { bt2Datatable = value; }
         }
 
+        private DataTable dgDatatable = new DataTable("Table3");
+
+        public DataTable DgDatatable
+        {
+            get { return dgDatatable; }
+            set { dgDatatable = value; }
+        }
+
         public static DependencyProperty ColumnProperty = Grid.ColumnProperty;
 
         public MainWindow()
@@ -49,7 +57,30 @@ namespace biaotouDemo
             InsertData();
             AddSecondbiaotou();
             AddFirstbiaotou();
+            AddDataGrid();
         }
+
+        List<Double> listDoubleWidth = new List<double>();
+
+        private void AddDataGrid()
+        {
+
+            for (int i = 0; i < Bt2Datatable.Rows.Count; i++)
+            {
+                string strName = Bt2Datatable.Rows[i]["Name"].ToString().Trim();
+                string strBorderName = "border" + strName + i.ToString();
+                //Border element = GetChildObject<Border>(this.grid, strBorderName);
+                //double doubleWidth = 20.00 + element.ActualWidth;
+                //listDoubleWidth.Add(doubleWidth);
+                //datagrid.Columns[j].Width = doubleWidth;
+                double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
+                MessageBox.Show(doubleWidth.ToString());
+
+            }
+            datagrid.ItemsSource = DgDatatable.DefaultView;
+        }
+
+        #region 表头
 
         private void AddSecondbiaotou()
         {
@@ -159,7 +190,7 @@ namespace biaotouDemo
                     boolIsAdd = true;
                     intTotal = i + intColumnSpan;
                 }
-                else /*if (intColumnSpan != 1 && boolIsAdd == true)*/
+                else
                 {
                     border.SetValue(Grid.RowProperty, 0);
                     border.SetValue(Grid.ColumnProperty, intTotal);
@@ -171,10 +202,14 @@ namespace biaotouDemo
             }
         }
 
+        #endregion 表头
+
         #region 增加数据
 
         private void InsertData()
         {
+            #region 表头第一列
+
             //表头第一列
 
             Bt1Datatable.Columns.Add("No");
@@ -205,7 +240,11 @@ namespace biaotouDemo
             dr4["Name"] = "药品比10分";
             Bt1Datatable.Rows.Add(dr4);
 
-            //----------------------------------------------
+            #endregion 表头第一列
+
+            //-----------------------------------------
+
+            #region 表头第二列
 
             //表头第二列
 
@@ -296,11 +335,66 @@ namespace biaotouDemo
             dr21["No"] = 4;
             dr21["Name"] = "得分";
             Bt2Datatable.Rows.Add(dr21);
+
+            #endregion 表头第二列
+
+            //-----------------------------------------
+
+            #region datagrid内容
+
+            //datagrid内容
+
+            DgDatatable.Columns.Add("科室",typeof(string));
+            DgDatatable.Columns.Add("考核项目",typeof(string));
+            DgDatatable.Columns.Add("出科人数标准", typeof(int));
+            DgDatatable.Columns.Add("出科人数标准得分", typeof(int));
+            DgDatatable.Columns.Add("手术费", typeof(decimal));
+            DgDatatable.Columns.Add("手术费得分", typeof(int));
+            DgDatatable.Columns.Add("科内手术室", typeof(string));
+            DgDatatable.Columns.Add("科内手术室得分", typeof(int));
+            DgDatatable.Columns.Add("病床使用率", typeof(string));
+            DgDatatable.Columns.Add("病床使用率得分", typeof(int));
+            DgDatatable.Columns.Add("月业务收入", typeof(decimal));
+            DgDatatable.Columns.Add("月业务收入得分", typeof(int));
+            DgDatatable.Columns.Add("结余额", typeof(decimal));
+            DgDatatable.Columns.Add("结余额得分", typeof(int));
+            DgDatatable.Columns.Add("费用成本率", typeof(string));
+            DgDatatable.Columns.Add("费用成本率得分", typeof(int));
+            DgDatatable.Columns.Add("药品比得分", typeof(int));
+
+            DataRow myDr = DgDatatable.NewRow();
+            myDr["科室"] = "儿科";
+            myDr["考核项目"] = "bugster切除手术";
+            myDr["出科人数标准"] = 4;
+            myDr["出科人数标准得分"] = 84;
+            myDr["手术费"] = 4396;
+            myDr["手术费得分"] = 88;
+            myDr["科内手术室"] = "手术室5";
+            myDr["科内手术室得分"] = 90;
+            myDr["病床使用率"] = "99.9%";
+            myDr["病床使用率得分"] = 88;
+            myDr["月业务收入"] = 85000;
+            myDr["月业务收入得分"] = 85;
+            myDr["结余额"] = 85000;
+            myDr["结余额得分"] = 85;
+            myDr["费用成本率"] = 85000;
+            myDr["费用成本率得分"] = 85;
+            myDr["药品比得分"] = 75;
+            DgDatatable.Rows.Add(myDr);
+
+            #endregion datagrid内容
+
         }
 
         #endregion 增加数据
 
-
+        /// <summary>
+        /// 根据控件名获取控件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public T GetChildObject<T>(DependencyObject obj, string name) where T : FrameworkElement
         {
             DependencyObject child = null;

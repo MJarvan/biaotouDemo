@@ -12,10 +12,10 @@
             <RowDefinition Height="200" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Name="grid" Grid.Row="0">
+        <Grid Name="grid" Grid.Row="0" ScrollViewer.HorizontalScrollBarVisibility="Visible">
             
         </Grid>
-        <DataGrid Name="datagrid" Grid.Row="1" HeadersVisibility="None">
+        <DataGrid Name="datagrid" Grid.Row="1" HeadersVisibility="None" AutoGenerateColumns="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" CanUserSortColumns="False">
             
         </DataGrid>
     </Grid>
