@@ -24,6 +24,15 @@ namespace biaotouDemo
     {
 
         #region 属性
+
+        private DataSet dsDataSet = new DataSet("DataSet1");
+
+        public DataSet DsDataSet
+        {
+            get { return dsDataSet; }
+            set { dsDataSet = value; }
+        }
+
         private DataTable bt1Datatable = new DataTable("Table1");
 
         public DataTable Bt1Datatable
@@ -64,8 +73,18 @@ namespace biaotouDemo
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             InsertData();
-            AddSecondbiaotou();
-            AddFirstbiaotou();
+            int intTableCount = DsDataSet.Tables.Count;
+            for (int i = intTableCount - 1; i >= 0; i--)
+            {
+                if (i == intTableCount - 1)
+                {
+                    AddBottombiaotou(DsDataSet.Tables[i]);
+                }
+                else
+                {
+                    AddToptbiaotou(DsDataSet.Tables[i], DsDataSet.Tables[i + 1]);
+                }
+            }
             AddDataGrid();
         }
 
@@ -97,7 +116,7 @@ namespace biaotouDemo
 
         #region 表头
 
-        private void AddSecondbiaotou()
+        private void AddBottombiaotou(DataTable dt)
         {
             RowDefinition rd1 = new RowDefinition();
             GridLength heigth1 = new GridLength(1, GridUnitType.Auto);
@@ -109,11 +128,11 @@ namespace biaotouDemo
             rd2.Height = heigth2;
             grid.RowDefinitions.Add(rd2);
 
-            int rowsCount = Bt2Datatable.Rows.Count;
+            int rowsCount = dt.Rows.Count;
             for (int i = 0; i < rowsCount; i++)
             {
-                int no = Convert.ToInt32(Bt2Datatable.Rows[i]["No"].ToString().Trim());
-                string str = Bt2Datatable.Rows[i]["Name"].ToString().Trim();
+                int no = Convert.ToInt32(dt.Rows[i]["No"].ToString().Trim());
+                string str = dt.Rows[i]["Name"].ToString().Trim();
                 if (str == string.Empty)
                 {
                     ColumnDefinition cd = new ColumnDefinition();
@@ -155,15 +174,15 @@ namespace biaotouDemo
             }
         }
 
-        private void AddFirstbiaotou()
+        private void AddToptbiaotou(DataTable dt1, DataTable dt2)
         {
             int intColumnSpan = 0;
-            int rowsCount = Bt1Datatable.Rows.Count;
+            int rowsCount = dt1.Rows.Count;
             bool boolIsAdd = false;
             for (int i = 0; i < rowsCount; i++)
             {
-                int no = Convert.ToInt32(Bt1Datatable.Rows[i]["No"].ToString().Trim());
-                string str = Bt1Datatable.Rows[i]["Name"].ToString().Trim();
+                int no = Convert.ToInt32(dt1.Rows[i]["No"].ToString().Trim());
+                string str = dt1.Rows[i]["Name"].ToString().Trim();
                 TextBlock textblock = new TextBlock();
                 textblock.Tag = no;
                 textblock.Text = str;
@@ -177,9 +196,9 @@ namespace biaotouDemo
                 border.BorderBrush = Brushes.Black;
                 border.Child = textblock;
 
-                for(int j = 0; j < Bt2Datatable.Rows.Count; j++)
+                for(int j = 0; j < dt2.Rows.Count; j++)
                 {
-                    string strName = Bt2Datatable.Rows[j]["Name"].ToString().Trim();
+                    string strName = dt2.Rows[j]["Name"].ToString().Trim();
                     string strBorderName = "border" + strName + j.ToString();
                     Border element = GetChildObject<Border>(this.grid, strBorderName);
                     if (Convert.ToInt32(element.Tag) == no)
@@ -428,6 +447,9 @@ namespace biaotouDemo
             DgDatatable.Rows.Add(myDr);
 
             #endregion datagrid内容
+
+            DsDataSet.Tables.Add(Bt1Datatable);
+            DsDataSet.Tables.Add(Bt2Datatable);
 
         }
 
