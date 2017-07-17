@@ -80,6 +80,14 @@ namespace biaotouDemo
                 double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
                 listDoubleWidth.Add(doubleWidth);
             }
+
+            for (int j = 0; j < DgDatatable.Columns.Count; j++)
+            {
+                string strName = DgDatatable.Columns[j].ColumnName;
+                DataGridTextColumn col = new DataGridTextColumn() { Header = strName, Binding = new Binding() { Path = new PropertyPath((strName ?? "").ToString().Trim()), } };
+                col.ElementStyle = FindResource("wrapCellStyle") as Style;
+                this.datagrid.Columns.Add(col);
+            }
             datagrid.ItemsSource = DgDatatable.DefaultView;
             for (int i = 0; i < listDoubleWidth.Count; i++)
             {
@@ -92,7 +100,7 @@ namespace biaotouDemo
         private void AddSecondbiaotou()
         {
             RowDefinition rd1 = new RowDefinition();
-            GridLength heigth1 = new GridLength(grid.ActualHeight / 2);
+            GridLength heigth1 = new GridLength(1, GridUnitType.Auto);
             rd1.Height = heigth1;
             grid.RowDefinitions.Add(rd1);
 
@@ -130,12 +138,12 @@ namespace biaotouDemo
 
                 TextBlock textblock = new TextBlock();
                 textblock.Text = str;
-                textblock.Margin = new Thickness(10);
+                textblock.Margin = new Thickness(20);
                 textblock.VerticalAlignment = VerticalAlignment.Center;
                 textblock.HorizontalAlignment = HorizontalAlignment.Center;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(1);
+                border.BorderThickness = new Thickness(0.5);
                 border.BorderBrush = Brushes.Black;
                 border.Name = "border" + str + i.ToString();
                 border.Tag = no;
@@ -152,7 +160,6 @@ namespace biaotouDemo
             int intColumnSpan = 0;
             int rowsCount = Bt1Datatable.Rows.Count;
             bool boolIsAdd = false;
-            bool boolIsNew = false;
             for (int i = 0; i < rowsCount; i++)
             {
                 int no = Convert.ToInt32(Bt1Datatable.Rows[i]["No"].ToString().Trim());
@@ -166,7 +173,7 @@ namespace biaotouDemo
                 textblock.TextWrapping = TextWrapping.Wrap;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(1);
+                border.BorderThickness = new Thickness(0.5);
                 border.BorderBrush = Brushes.Black;
                 border.Child = textblock;
 
@@ -179,29 +186,36 @@ namespace biaotouDemo
                     {
                         intColumnSpan++;
                     }
-                    //else if( j == Bt2Datatable.Rows.Count - 1 && Convert.ToInt32(element.Tag) != no)
-                    //{
-                    //    intColumnSpan++;
-                    //    boolIsNew = true;
-                    //}
                 }
 
                 grid.Children.Add(border);
-                //if (boolIsNew == true)
-                //{
-                //    ColumnDefinition cd = new ColumnDefinition();
-                //    GridLength width = new GridLength(1, GridUnitType.Auto);
-                //    cd.Width = width;
-                //    grid.ColumnDefinitions.Add(cd);
 
-                //    intTotal = intTotal + 1;
-                //    border.SetValue(Grid.RowProperty, 0);
-                //    border.SetValue(Grid.ColumnProperty, intTotal);
-                //    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
-                //}
-                //else
-                //{
-                    if (intColumnSpan == 1 && boolIsAdd == false)
+                if (intColumnSpan == 0)
+                {
+                    //新建一列
+                    ColumnDefinition cd = new ColumnDefinition();
+                    GridLength width = new GridLength(1, GridUnitType.Auto);
+                    cd.Width = width;
+                    grid.ColumnDefinitions.Add(cd);
+
+                    intTotal = intTotal + 1;
+                    intColumnSpan = 1;
+                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.ColumnProperty, intTotal);
+                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+
+                    //新建第二列的border
+                    Border border2 = new Border();
+                    border2.BorderThickness = new Thickness(0.5);
+                    border2.BorderBrush = Brushes.Black;
+                    grid.Children.Add(border2);
+                    border2.SetValue(Grid.RowProperty, 1);
+                    border2.SetValue(Grid.ColumnProperty, intTotal);
+                    border2.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                }
+                else
+                {
+                if (intColumnSpan == 1 && boolIsAdd == false)
                     {
                         border.SetValue(Grid.RowProperty, 0);
                         border.SetValue(Grid.ColumnProperty, i);
@@ -222,7 +236,7 @@ namespace biaotouDemo
                         border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
                         intTotal = intTotal + intColumnSpan;
                     }
-                //}
+                }
 
                 intColumnSpan = 0;
             }
@@ -266,10 +280,10 @@ namespace biaotouDemo
             dr4["Name"] = "药品比10分";
             Bt1Datatable.Rows.Add(dr4);
 
-            //DataRow dr50 = Bt1Datatable.NewRow();
-            //dr50["No"] = 5;
-            //dr50["Name"] = "累计得分";
-            //Bt1Datatable.Rows.Add(dr50);
+            DataRow dr50 = Bt1Datatable.NewRow();
+            dr50["No"] = 5;
+            dr50["Name"] = "累计得分";
+            Bt1Datatable.Rows.Add(dr50);
 
             #endregion 表头第一列
 
