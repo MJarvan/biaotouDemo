@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace biaotouDemo
 {
@@ -21,6 +22,8 @@ namespace biaotouDemo
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        #region 属性
         private DataTable bt1Datatable = new DataTable("Table1");
 
         public DataTable Bt1Datatable
@@ -45,7 +48,13 @@ namespace biaotouDemo
             set { dgDatatable = value; }
         }
 
-        public static DependencyProperty ColumnProperty = Grid.ColumnProperty;
+        List<Double> listDoubleWidth = new List<double>();
+
+        public static int intTotal = 0;
+
+        private static DispatcherOperationCallback exitFrameCallback = new DispatcherOperationCallback(ExitFrame);
+
+        #endregion 属性
 
         public MainWindow()
         {
@@ -60,24 +69,22 @@ namespace biaotouDemo
             AddDataGrid();
         }
 
-        List<Double> listDoubleWidth = new List<double>();
-
+        /// <summary>
+        /// 增加datagrid数据
+        /// </summary>
         private void AddDataGrid()
         {
-
+            DoEvents();
             for (int i = 0; i < Bt2Datatable.Rows.Count; i++)
             {
-                string strName = Bt2Datatable.Rows[i]["Name"].ToString().Trim();
-                string strBorderName = "border" + strName + i.ToString();
-                //Border element = GetChildObject<Border>(this.grid, strBorderName);
-                //double doubleWidth = 20.00 + element.ActualWidth;
-                //listDoubleWidth.Add(doubleWidth);
-                //datagrid.Columns[j].Width = doubleWidth;
                 double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
-                MessageBox.Show(doubleWidth.ToString());
-
+                listDoubleWidth.Add(doubleWidth);
             }
             datagrid.ItemsSource = DgDatatable.DefaultView;
+            for (int i = 0; i < listDoubleWidth.Count; i++)
+            {
+                datagrid.Columns[i].Width = listDoubleWidth[i];
+            }
         }
 
         #region 表头
@@ -139,12 +146,13 @@ namespace biaotouDemo
                 border.SetValue(Grid.ColumnProperty, i);
             }
         }
-        public static int intTotal = 0;
+
         private void AddFirstbiaotou()
         {
             int intColumnSpan = 0;
             int rowsCount = Bt1Datatable.Rows.Count;
             bool boolIsAdd = false;
+            bool boolIsNew = false;
             for (int i = 0; i < rowsCount; i++)
             {
                 int no = Convert.ToInt32(Bt1Datatable.Rows[i]["No"].ToString().Trim());
@@ -156,7 +164,6 @@ namespace biaotouDemo
                 textblock.VerticalAlignment = VerticalAlignment.Center;
                 textblock.HorizontalAlignment = HorizontalAlignment.Center;
                 textblock.TextWrapping = TextWrapping.Wrap;
-                
 
                 Border border = new Border();
                 border.BorderThickness = new Thickness(1);
@@ -172,31 +179,50 @@ namespace biaotouDemo
                     {
                         intColumnSpan++;
                     }
+                    //else if( j == Bt2Datatable.Rows.Count - 1 && Convert.ToInt32(element.Tag) != no)
+                    //{
+                    //    intColumnSpan++;
+                    //    boolIsNew = true;
+                    //}
                 }
 
                 grid.Children.Add(border);
+                //if (boolIsNew == true)
+                //{
+                //    ColumnDefinition cd = new ColumnDefinition();
+                //    GridLength width = new GridLength(1, GridUnitType.Auto);
+                //    cd.Width = width;
+                //    grid.ColumnDefinitions.Add(cd);
 
-                if (intColumnSpan == 1 && boolIsAdd == false)
-                {
-                    border.SetValue(Grid.RowProperty, 0);
-                    border.SetValue(Grid.ColumnProperty, i);
-                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
-                }
-                else if (intColumnSpan != 1 && boolIsAdd == false)
-                {
-                    border.SetValue(Grid.RowProperty, 0);
-                    border.SetValue(Grid.ColumnProperty, i);
-                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
-                    boolIsAdd = true;
-                    intTotal = i + intColumnSpan;
-                }
-                else
-                {
-                    border.SetValue(Grid.RowProperty, 0);
-                    border.SetValue(Grid.ColumnProperty, intTotal);
-                    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
-                    intTotal = intTotal + intColumnSpan;
-                }
+                //    intTotal = intTotal + 1;
+                //    border.SetValue(Grid.RowProperty, 0);
+                //    border.SetValue(Grid.ColumnProperty, intTotal);
+                //    border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                //}
+                //else
+                //{
+                    if (intColumnSpan == 1 && boolIsAdd == false)
+                    {
+                        border.SetValue(Grid.RowProperty, 0);
+                        border.SetValue(Grid.ColumnProperty, i);
+                        border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    }
+                    else if (intColumnSpan != 1 && boolIsAdd == false)
+                    {
+                        border.SetValue(Grid.RowProperty, 0);
+                        border.SetValue(Grid.ColumnProperty, i);
+                        border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                        boolIsAdd = true;
+                        intTotal = i + intColumnSpan;
+                    }
+                    else
+                    {
+                        border.SetValue(Grid.RowProperty, 0);
+                        border.SetValue(Grid.ColumnProperty, intTotal);
+                        border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                        intTotal = intTotal + intColumnSpan;
+                    }
+                //}
 
                 intColumnSpan = 0;
             }
@@ -239,6 +265,11 @@ namespace biaotouDemo
             dr4["No"] = 4;
             dr4["Name"] = "药品比10分";
             Bt1Datatable.Rows.Add(dr4);
+
+            //DataRow dr50 = Bt1Datatable.NewRow();
+            //dr50["No"] = 5;
+            //dr50["Name"] = "累计得分";
+            //Bt1Datatable.Rows.Add(dr50);
 
             #endregion 表头第一列
 
@@ -418,5 +449,25 @@ namespace biaotouDemo
             return null;
         }
 
+        /// <summary>
+        /// 刷新界面
+        /// </summary>
+        public static void DoEvents()
+        {
+            DispatcherFrame nestedFrame = new DispatcherFrame();
+            DispatcherOperation exitOperation = Dispatcher.CurrentDispatcher.BeginInvoke
+            (DispatcherPriority.Background,exitFrameCallback, nestedFrame);
+            Dispatcher.PushFrame(nestedFrame);
+            if (exitOperation.Status != DispatcherOperationStatus.Completed)
+            {
+                exitOperation.Abort();
+            }
+        }
+        private static Object ExitFrame(Object state)
+        {
+            DispatcherFrame frame = state as DispatcherFrame;
+            frame.Continue = false;
+            return null;
+        }
     }
 }

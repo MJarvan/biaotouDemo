@@ -7,16 +7,18 @@
         xmlns:local="clr-namespace:biaotouDemo"
         mc:Ignorable="d"
         Height="600" Width="1600" Title="表头demo" FontSize="15" Loaded="Window_Loaded">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="200" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Grid Name="grid" Grid.Row="0" ScrollViewer.HorizontalScrollBarVisibility="Visible">
-            
+    <ScrollViewer HorizontalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="200" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid  Grid.Row="0" Name="grid">
+
+            </Grid>
+            <DataGrid Name="datagrid" Grid.Row="2" HeadersVisibility="None" AutoGenerateColumns="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" CanUserSortColumns="False">
+
+            </DataGrid>
         </Grid>
-        <DataGrid Name="datagrid" Grid.Row="1" HeadersVisibility="None" AutoGenerateColumns="True" ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible" CanUserSortColumns="False">
-            
-        </DataGrid>
-    </Grid>
+    </ScrollViewer>
 </Window>
