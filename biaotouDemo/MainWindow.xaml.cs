@@ -49,7 +49,15 @@ namespace biaotouDemo
             set { bt2Datatable = value; }
         }
 
-        private DataTable dgDatatable = new DataTable("Table3");
+        private DataTable bt3Datatable = new DataTable("Table3");
+
+        public DataTable Bt3Datatable
+        {
+            get { return bt3Datatable; }
+            set { bt3Datatable = value; }
+        }
+
+        private DataTable dgDatatable = new DataTable("Tabledg");
 
         public DataTable DgDatatable
         {
@@ -78,28 +86,27 @@ namespace biaotouDemo
             {
                 if (i == intTableCount - 1)
                 {
-                    AddBottombiaotou(DsDataSet.Tables[i]);
+                    AddBottombiaotou(DsDataSet.Tables[i], i);
                 }
                 else
                 {
-                    AddToptbiaotou(DsDataSet.Tables[i], DsDataSet.Tables[i + 1]);
+                    AddToptbiaotou(DsDataSet.Tables[i], DsDataSet.Tables[i + 1], i);
                 }
             }
-            AddDataGrid();
+            AddDataGrid(DsDataSet.Tables[intTableCount - 1]);
         }
 
         /// <summary>
         /// 增加datagrid数据
         /// </summary>
-        private void AddDataGrid()
+        private void AddDataGrid(DataTable dt)
         {
             DoEvents();
-            for (int i = 0; i < Bt2Datatable.Rows.Count; i++)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
                 double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
                 listDoubleWidth.Add(doubleWidth);
             }
-
             for (int j = 0; j < DgDatatable.Columns.Count; j++)
             {
                 string strName = DgDatatable.Columns[j].ColumnName;
@@ -116,22 +123,34 @@ namespace biaotouDemo
 
         #region 表头
 
-        private void AddBottombiaotou(DataTable dt)
+        /// <summary>
+        /// 添加底层表头
+        /// </summary>
+        /// <param name="dt"></param>
+        private void AddBottombiaotou(DataTable dt , int intGridRow)
         {
-            RowDefinition rd1 = new RowDefinition();
-            GridLength heigth1 = new GridLength(1, GridUnitType.Auto);
-            rd1.Height = heigth1;
-            grid.RowDefinitions.Add(rd1);
+            int intTableCount = DsDataSet.Tables.Count;
 
-            RowDefinition rd2 = new RowDefinition();
-            GridLength heigth2 = new GridLength(1, GridUnitType.Star);
-            rd2.Height = heigth2;
-            grid.RowDefinitions.Add(rd2);
+            for (int j = 0; j < intTableCount; j++)
+            {
+                RowDefinition rd = new RowDefinition();
+                if(j == intTableCount - 1)
+                {
+                    GridLength heigth = new GridLength(1, GridUnitType.Star);
+                    rd.Height = heigth;
+                }
+                else
+                {
+                    GridLength heigth = new GridLength(1, GridUnitType.Auto);
+                    rd.Height = heigth;
+                }
+                grid.RowDefinitions.Add(rd);
+            }
 
             int rowsCount = dt.Rows.Count;
             for (int i = 0; i < rowsCount; i++)
             {
-                int no = Convert.ToInt32(dt.Rows[i]["No"].ToString().Trim());
+                int intFatherID = Convert.ToInt32(dt.Rows[i]["FatherID"].ToString().Trim());
                 string str = dt.Rows[i]["Name"].ToString().Trim();
                 if (str == string.Empty)
                 {
@@ -156,35 +175,43 @@ namespace biaotouDemo
                 }
 
                 TextBlock textblock = new TextBlock();
+                textblock.ToolTip = intFatherID;
                 textblock.Text = str;
                 textblock.Margin = new Thickness(20);
                 textblock.VerticalAlignment = VerticalAlignment.Center;
                 textblock.HorizontalAlignment = HorizontalAlignment.Center;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(0.5);
+                border.BorderThickness = new Thickness(1);
                 border.BorderBrush = Brushes.Black;
                 border.Name = "border" + str + i.ToString();
-                border.Tag = no;
+                border.ToolTip = 1;
+                border.Tag = intFatherID;
                 border.Child = textblock;
 
                 grid.Children.Add(border);
-                border.SetValue(Grid.RowProperty, 1);
+                border.SetValue(Grid.RowProperty, intGridRow);
                 border.SetValue(Grid.ColumnProperty, i);
             }
         }
 
-        private void AddToptbiaotou(DataTable dt1, DataTable dt2)
+        /// <summary>
+        /// 添加上层表头
+        /// </summary>
+        /// <param name="dt1"></param>
+        /// <param name="dt2"></param>
+        private void AddToptbiaotou(DataTable dt1, DataTable dt2, int intGridRow)
         {
             int intColumnSpan = 0;
             int rowsCount = dt1.Rows.Count;
             bool boolIsAdd = false;
             for (int i = 0; i < rowsCount; i++)
             {
-                int no = Convert.ToInt32(dt1.Rows[i]["No"].ToString().Trim());
+                int intID = Convert.ToInt32(dt1.Rows[i]["ID"].ToString().Trim());
+                int intFatherID = Convert.ToInt32(dt1.Rows[i]["FatherID"].ToString().Trim());
                 string str = dt1.Rows[i]["Name"].ToString().Trim();
                 TextBlock textblock = new TextBlock();
-                textblock.Tag = no;
+                textblock.ToolTip = intFatherID;
                 textblock.Text = str;
                 textblock.Margin = new Thickness(10);
                 textblock.VerticalAlignment = VerticalAlignment.Center;
@@ -192,8 +219,10 @@ namespace biaotouDemo
                 textblock.TextWrapping = TextWrapping.Wrap;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(0.5);
+                border.BorderThickness = new Thickness(1);
                 border.BorderBrush = Brushes.Black;
+                border.Name = "border" + str + i.ToString();
+                border.Tag = intFatherID;
                 border.Child = textblock;
 
                 for(int j = 0; j < dt2.Rows.Count; j++)
@@ -201,12 +230,17 @@ namespace biaotouDemo
                     string strName = dt2.Rows[j]["Name"].ToString().Trim();
                     string strBorderName = "border" + strName + j.ToString();
                     Border element = GetChildObject<Border>(this.grid, strBorderName);
-                    if (Convert.ToInt32(element.Tag) == no)
+                    if (Convert.ToInt32(element.Tag) == intID && Convert.ToInt32(element.ToolTip) <=1)
                     {
                         intColumnSpan++;
                     }
+                    else if (Convert.ToInt32(element.Tag) == intID && Convert.ToInt32(element.ToolTip) > 1)
+                    {
+                        intColumnSpan = intColumnSpan + Convert.ToInt32(element.ToolTip);
+                    }
                 }
 
+                border.ToolTip = intColumnSpan;
                 grid.Children.Add(border);
 
                 if (intColumnSpan == 0)
@@ -219,30 +253,30 @@ namespace biaotouDemo
 
                     intTotal = intTotal + 1;
                     intColumnSpan = 1;
-                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.RowProperty, intGridRow);
                     border.SetValue(Grid.ColumnProperty, intTotal);
                     border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
 
-                    //新建第二列的border
-                    Border border2 = new Border();
-                    border2.BorderThickness = new Thickness(0.5);
-                    border2.BorderBrush = Brushes.Black;
-                    grid.Children.Add(border2);
-                    border2.SetValue(Grid.RowProperty, 1);
-                    border2.SetValue(Grid.ColumnProperty, intTotal);
-                    border2.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    ////新建第二列的border
+                    //Border border2 = new Border();
+                    //border2.BorderThickness = new Thickness(0.5);
+                    //border2.BorderBrush = Brushes.Black;
+                    //grid.Children.Add(border2);
+                    //border2.SetValue(Grid.RowProperty, 1);
+                    //border2.SetValue(Grid.ColumnProperty, intTotal);
+                    //border2.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
                 }
                 else
                 {
                 if (intColumnSpan == 1 && boolIsAdd == false)
                     {
-                        border.SetValue(Grid.RowProperty, 0);
+                        border.SetValue(Grid.RowProperty, intGridRow);
                         border.SetValue(Grid.ColumnProperty, i);
                         border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
                     }
                     else if (intColumnSpan != 1 && boolIsAdd == false)
                     {
-                        border.SetValue(Grid.RowProperty, 0);
+                        border.SetValue(Grid.RowProperty, intGridRow);
                         border.SetValue(Grid.ColumnProperty, i);
                         border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
                         boolIsAdd = true;
@@ -250,7 +284,7 @@ namespace biaotouDemo
                     }
                     else
                     {
-                        border.SetValue(Grid.RowProperty, 0);
+                        border.SetValue(Grid.RowProperty, intGridRow);
                         border.SetValue(Grid.ColumnProperty, intTotal);
                         border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
                         intTotal = intTotal + intColumnSpan;
@@ -268,139 +302,192 @@ namespace biaotouDemo
         private void InsertData()
         {
             #region 表头第一列
-
-            //表头第一列
-
-            Bt1Datatable.Columns.Add("No");
+            Bt1Datatable.Columns.Add("FatherID");
+            Bt1Datatable.Columns.Add("ID");
             Bt1Datatable.Columns.Add("Name");
 
-            DataRow dr0 = Bt1Datatable.NewRow();
-            dr0["No"] = 0;
-            dr0["Name"] = "科室";
-            Bt1Datatable.Rows.Add(dr0);
+            DataRow dr100 = Bt1Datatable.NewRow();
+            dr100["FatherID"] = 0;
+            dr100["ID"] = 0;
+            dr100["Name"] = "增攀";
+            Bt1Datatable.Rows.Add(dr100);
 
-            DataRow dr1 = Bt1Datatable.NewRow();
-            dr1["No"] = 1;
-            dr1["Name"] = string.Empty;
-            Bt1Datatable.Rows.Add(dr1);
+            DataRow dr101 = Bt1Datatable.NewRow();
+            dr101["FatherID"] = 0;
+            dr101["ID"] = 1;
+            dr101["Name"] = "颖锋";
+            Bt1Datatable.Rows.Add(dr101);
 
-            DataRow dr2 = Bt1Datatable.NewRow();
-            dr2["No"] = 2;
-            dr2["Name"] = "工作量20分";
-            Bt1Datatable.Rows.Add(dr2);
+            DataRow dr102 = Bt1Datatable.NewRow();
+            dr102["FatherID"] = 0;
+            dr102["ID"] = 2;
+            dr102["Name"] = "铭杰";
+            Bt1Datatable.Rows.Add(dr102);
 
-            DataRow dr3 = Bt1Datatable.NewRow();
-            dr3["No"] = 3;
-            dr3["Name"] = "经济指标25分";
-            Bt1Datatable.Rows.Add(dr3);
-
-            DataRow dr4 = Bt1Datatable.NewRow();
-            dr4["No"] = 4;
-            dr4["Name"] = "药品比10分";
-            Bt1Datatable.Rows.Add(dr4);
-
-            DataRow dr50 = Bt1Datatable.NewRow();
-            dr50["No"] = 5;
-            dr50["Name"] = "累计得分";
-            Bt1Datatable.Rows.Add(dr50);
+            DataRow dr103 = Bt1Datatable.NewRow();
+            dr103["FatherID"] = 0;
+            dr103["ID"] = 3;
+            dr103["Name"] = "荷叶";
+            Bt1Datatable.Rows.Add(dr103);
 
             #endregion 表头第一列
 
             //-----------------------------------------
 
             #region 表头第二列
-
-            //表头第二列
-
-            Bt2Datatable.Columns.Add("No");
+            Bt2Datatable.Columns.Add("FatherID");
+            Bt2Datatable.Columns.Add("ID");
             Bt2Datatable.Columns.Add("Name");
 
-            DataRow dr5 = Bt2Datatable.NewRow();
-            dr5["No"] = 0;
-            dr5["Name"] = string.Empty;
-            Bt2Datatable.Rows.Add(dr5);
+            DataRow dr0 = Bt2Datatable.NewRow();
+            dr0["FatherID"] = 0;
+            dr0["ID"] = 0;
+            dr0["Name"] = "科室";
+            Bt2Datatable.Rows.Add(dr0);
 
-            DataRow dr6 = Bt2Datatable.NewRow();
-            dr6["No"] = 1;
-            dr6["Name"] = "考核项目";
-            Bt2Datatable.Rows.Add(dr6);
+            DataRow dr1 = Bt2Datatable.NewRow();
+            dr1["FatherID"] = 1;
+            dr1["ID"] = 1;
+            dr1["Name"] = string.Empty;
+            Bt2Datatable.Rows.Add(dr1);
 
-            DataRow dr7 = Bt2Datatable.NewRow();
-            dr7["No"] = 2;
-            dr7["Name"] = "出科人数标准";
-            Bt2Datatable.Rows.Add(dr7);
+            DataRow dr2 = Bt2Datatable.NewRow();
+            dr2["FatherID"] = 2;
+            dr2["ID"] = 2;
+            dr2["Name"] = "工作量20分";
+            Bt2Datatable.Rows.Add(dr2);
 
-            DataRow dr8 = Bt2Datatable.NewRow();
-            dr8["No"] = 2;
-            dr8["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr8);
+            DataRow dr3 = Bt2Datatable.NewRow();
+            dr3["FatherID"] = 2;
+            dr3["ID"] = 3;
+            dr3["Name"] = "经济指标25分";
+            Bt2Datatable.Rows.Add(dr3);
 
-            DataRow dr9 = Bt2Datatable.NewRow();
-            dr9["No"] = 2;
-            dr9["Name"] = "手术费";
-            Bt2Datatable.Rows.Add(dr9);
+            DataRow dr4 = Bt2Datatable.NewRow();
+            dr4["FatherID"] = 2;
+            dr4["ID"] = 4;
+            dr4["Name"] = "药品比10分";
+            Bt2Datatable.Rows.Add(dr4);
 
-            DataRow dr10 = Bt2Datatable.NewRow();
-            dr10["No"] = 2;
-            dr10["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr10);
-
-            DataRow dr11 = Bt2Datatable.NewRow();
-            dr11["No"] = 2;
-            dr11["Name"] = "科内手术室";
-            Bt2Datatable.Rows.Add(dr11);
-
-            DataRow dr12 = Bt2Datatable.NewRow();
-            dr12["No"] = 2;
-            dr12["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr12);
-
-            DataRow dr13 = Bt2Datatable.NewRow();
-            dr13["No"] = 2;
-            dr13["Name"] = "使用病床率";
-            Bt2Datatable.Rows.Add(dr13);
-
-            DataRow dr14 = Bt2Datatable.NewRow();
-            dr14["No"] = 2;
-            dr14["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr14);
-
-            DataRow dr15 = Bt2Datatable.NewRow();
-            dr15["No"] = 3;
-            dr15["Name"] = "月业务收入";
-            Bt2Datatable.Rows.Add(dr15);
-
-            DataRow dr16 = Bt2Datatable.NewRow();
-            dr16["No"] = 3;
-            dr16["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr16);
-
-            DataRow dr17 = Bt2Datatable.NewRow();
-            dr17["No"] = 3;
-            dr17["Name"] = "结余额";
-            Bt2Datatable.Rows.Add(dr17);
-
-            DataRow dr18 = Bt2Datatable.NewRow();
-            dr18["No"] = 3;
-            dr18["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr18);
-
-            DataRow dr19 = Bt2Datatable.NewRow();
-            dr19["No"] = 3;
-            dr19["Name"] = "费用成本率";
-            Bt2Datatable.Rows.Add(dr19);
-
-            DataRow dr20 = Bt2Datatable.NewRow();
-            dr20["No"] = 3;
-            dr20["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr20);
-
-            DataRow dr21 = Bt2Datatable.NewRow();
-            dr21["No"] = 4;
-            dr21["Name"] = "得分";
-            Bt2Datatable.Rows.Add(dr21);
+            DataRow dr50 = Bt2Datatable.NewRow();
+            dr50["FatherID"] = 3;
+            dr50["ID"] = 5;
+            dr50["Name"] = "累计得分";
+            Bt2Datatable.Rows.Add(dr50);
 
             #endregion 表头第二列
+
+            //-----------------------------------------
+
+            #region 表头第三列
+
+            Bt3Datatable.Columns.Add("FatherID");
+            Bt3Datatable.Columns.Add("ID");
+            Bt3Datatable.Columns.Add("Name");
+
+            DataRow dr5 = Bt3Datatable.NewRow();
+            dr5["FatherID"] = 0;
+            dr5["ID"] = 0;
+            dr5["Name"] = string.Empty;
+            Bt3Datatable.Rows.Add(dr5);
+
+            DataRow dr6 = Bt3Datatable.NewRow();
+            dr6["FatherID"] = 1;
+            dr6["ID"] = 1;
+            dr6["Name"] = "考核项目";
+            Bt3Datatable.Rows.Add(dr6);
+
+            DataRow dr7 = Bt3Datatable.NewRow();
+            dr7["FatherID"] = 2;
+            dr7["ID"] = 2;
+            dr7["Name"] = "出科人数标准";
+            Bt3Datatable.Rows.Add(dr7);
+
+            DataRow dr8 = Bt3Datatable.NewRow();
+            dr8["FatherID"] = 2;
+            dr8["ID"] = 3;
+            dr8["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr8);
+
+            DataRow dr9 = Bt3Datatable.NewRow();
+            dr9["FatherID"] = 2;
+            dr9["ID"] = 4;
+            dr9["Name"] = "手术费";
+            Bt3Datatable.Rows.Add(dr9);
+
+            DataRow dr10 = Bt3Datatable.NewRow();
+            dr10["FatherID"] = 2;
+            dr10["ID"] = 5;
+            dr10["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr10);
+
+            DataRow dr11 = Bt3Datatable.NewRow();
+            dr11["FatherID"] = 2;
+            dr11["ID"] = 6;
+            dr11["Name"] = "科内手术室";
+            Bt3Datatable.Rows.Add(dr11);
+
+            DataRow dr12 = Bt3Datatable.NewRow();
+            dr12["FatherID"] = 2;
+            dr12["ID"] = 7;
+            dr12["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr12);
+
+            DataRow dr13 = Bt3Datatable.NewRow();
+            dr13["FatherID"] = 2;
+            dr13["ID"] = 8;
+            dr13["Name"] = "使用病床率";
+            Bt3Datatable.Rows.Add(dr13);
+
+            DataRow dr14 = Bt3Datatable.NewRow();
+            dr14["FatherID"] = 2;
+            dr14["ID"] = 9;
+            dr14["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr14);
+
+            DataRow dr15 = Bt3Datatable.NewRow();
+            dr15["FatherID"] = 3;
+            dr15["ID"] = 10;
+            dr15["Name"] = "月业务收入";
+            Bt3Datatable.Rows.Add(dr15);
+
+            DataRow dr16 = Bt3Datatable.NewRow();
+            dr16["FatherID"] = 3;
+            dr16["ID"] = 11;
+            dr16["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr16);
+
+            DataRow dr17 = Bt3Datatable.NewRow();
+            dr17["FatherID"] = 3;
+            dr17["ID"] = 12;
+            dr17["Name"] = "结余额";
+            Bt3Datatable.Rows.Add(dr17);
+
+            DataRow dr18 = Bt3Datatable.NewRow();
+            dr18["FatherID"] = 3;
+            dr18["ID"] = 13;
+            dr18["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr18);
+
+            DataRow dr19 = Bt3Datatable.NewRow();
+            dr19["FatherID"] = 3;
+            dr19["ID"] = 14;
+            dr19["Name"] = "费用成本率";
+            Bt3Datatable.Rows.Add(dr19);
+
+            DataRow dr20 = Bt3Datatable.NewRow();
+            dr20["FatherID"] = 3;
+            dr20["ID"] = 15;
+            dr20["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr20);
+
+            DataRow dr21 = Bt3Datatable.NewRow();
+            dr21["FatherID"] = 4;
+            dr21["ID"] = 16;
+            dr21["Name"] = "得分";
+            Bt3Datatable.Rows.Add(dr21);
+
+            #endregion 表头第三列
 
             //-----------------------------------------
 
@@ -450,11 +537,13 @@ namespace biaotouDemo
 
             DsDataSet.Tables.Add(Bt1Datatable);
             DsDataSet.Tables.Add(Bt2Datatable);
+            DsDataSet.Tables.Add(Bt3Datatable);
 
         }
 
         #endregion 增加数据
 
+        #region 辅助函数
         /// <summary>
         /// 根据控件名获取控件
         /// </summary>
@@ -505,5 +594,7 @@ namespace biaotouDemo
             frame.Continue = false;
             return null;
         }
+
+        #endregion 辅助函数
     }
 }
