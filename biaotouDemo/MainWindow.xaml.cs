@@ -118,19 +118,54 @@ namespace biaotouDemo
                 cd.Width = width;
                 totalgrid.ColumnDefinitions.Add(cd);
 
+                //合并第一二行
                 if(i == 0)
                 {
                     TextBlock textblock = new TextBlock();
                     textblock.ToolTip = i;
                     textblock.Text = "合计：";
-                    textblock.Margin = new Thickness(10);
+                    textblock.Margin = new Thickness(15);
                     textblock.VerticalAlignment = VerticalAlignment.Center;
                     textblock.HorizontalAlignment = HorizontalAlignment.Center;
 
-                    totalgrid.Children.Add(textblock);
-                    textblock.SetValue(Grid.RowProperty, i);
-                    textblock.SetValue(Grid.ColumnProperty, i);
-                    textblock.SetValue(Grid.ColumnSpanProperty, 2);
+                    Border border = new Border();
+                    border.BorderThickness = new Thickness(0, 0, 0.4, 0);
+                    border.BorderBrush = Brushes.Black;
+                    border.Child = textblock;
+
+                    totalgrid.Children.Add(border);
+                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.ColumnProperty, i);
+                    border.SetValue(Grid.ColumnSpanProperty, 2);
+                }
+            }
+
+            //计算合计栏
+            for (int m = 0; m < intGridColumns; m++)
+            {
+                string strName = datagrid.Columns[m].Header.ToString().Trim();
+                if (strName.Contains("得分") == true)
+                {
+                    int intTotalPoint = 0;
+                    for (int n = 0; n < DgDatatable.Rows.Count; n++)
+                    {
+                        intTotalPoint = intTotalPoint + Convert.ToInt32(DgDatatable.Rows[n][m].ToString().Trim());
+                    }
+                    TextBlock textblock = new TextBlock();
+                    textblock.ToolTip = m;
+                    textblock.Text = intTotalPoint.ToString();
+                    textblock.Margin = new Thickness(15);
+                    textblock.VerticalAlignment = VerticalAlignment.Center;
+                    textblock.HorizontalAlignment = HorizontalAlignment.Center;
+
+                    Border border = new Border();
+                    border.BorderThickness = new Thickness(0.4, 0, 0.4, 0);
+                    border.BorderBrush = Brushes.Black;
+                    border.Child = textblock;
+
+                    totalgrid.Children.Add(border);
+                    border.SetValue(Grid.RowProperty, 0);
+                    border.SetValue(Grid.ColumnProperty, m);
                 }
             }
         }
