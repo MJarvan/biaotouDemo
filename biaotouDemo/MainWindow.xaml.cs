@@ -57,6 +57,14 @@ namespace biaotouDemo
             set { bt3Datatable = value; }
         }
 
+        private DataTable bt4Datatable = new DataTable("Table4");
+
+        public DataTable Bt4Datatable
+        {
+            get { return bt4Datatable; }
+            set { bt4Datatable = value; }
+        }
+
         private DataTable dgDatatable = new DataTable("Tabledg");
 
         public DataTable DgDatatable
@@ -182,7 +190,7 @@ namespace biaotouDemo
                 textblock.HorizontalAlignment = HorizontalAlignment.Center;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(1);
+                border.BorderThickness = new Thickness(0.5);
                 border.BorderBrush = Brushes.Black;
                 border.Name = "border" + str + i.ToString();
                 border.ToolTip = 1;
@@ -207,9 +215,10 @@ namespace biaotouDemo
             bool boolIsAdd = false;
             for (int i = 0; i < rowsCount; i++)
             {
-                int intID = Convert.ToInt32(dt1.Rows[i]["ID"].ToString().Trim());
                 int intFatherID = Convert.ToInt32(dt1.Rows[i]["FatherID"].ToString().Trim());
+                int intID = Convert.ToInt32(dt1.Rows[i]["ID"].ToString().Trim());
                 string str = dt1.Rows[i]["Name"].ToString().Trim();
+
                 TextBlock textblock = new TextBlock();
                 textblock.ToolTip = intFatherID;
                 textblock.Text = str;
@@ -219,7 +228,7 @@ namespace biaotouDemo
                 textblock.TextWrapping = TextWrapping.Wrap;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(1);
+                border.BorderThickness = new Thickness(0.5);
                 border.BorderBrush = Brushes.Black;
                 border.Name = "border" + str + i.ToString();
                 border.Tag = intFatherID;
@@ -253,18 +262,47 @@ namespace biaotouDemo
 
                     intTotal = intTotal + 1;
                     intColumnSpan = 1;
+                    border.ToolTip = intColumnSpan;
                     border.SetValue(Grid.RowProperty, intGridRow);
                     border.SetValue(Grid.ColumnProperty, intTotal);
                     border.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
 
-                    ////新建第二列的border
-                    //Border border2 = new Border();
-                    //border2.BorderThickness = new Thickness(0.5);
-                    //border2.BorderBrush = Brushes.Black;
-                    //grid.Children.Add(border2);
-                    //border2.SetValue(Grid.RowProperty, 1);
-                    //border2.SetValue(Grid.ColumnProperty, intTotal);
-                    //border2.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    //新建底下的border(要看底下有多少空的)
+
+                    for (int k = intGridRow; k < DsDataSet.Tables.Count - 1; k++)
+                    {
+                        Border border2 = new Border();
+                        border2.BorderThickness = new Thickness(0.5);
+                        border2.ToolTip = 1;
+                        border2.BorderBrush = Brushes.Black;
+                        grid.Children.Add(border2);
+                        border2.SetValue(Grid.RowProperty, k + 1);
+                        border2.SetValue(Grid.ColumnProperty, intTotal);
+                        border2.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    }
+
+                    //新建头顶的border(一个就够)
+                    DataTable dtTest = DsDataSet.Tables[intGridRow - 1];
+                    bool boolTest = false;
+                    for (int k = 0; k < dtTest.Rows.Count; k++)
+                    {
+                        if ( intFatherID == Convert.ToInt32(dtTest.Rows[k]["ID"].ToString().Trim()))
+                        {
+                            boolTest = true;
+                        }
+                    }
+                    if ( boolTest == false )
+                    {
+                        Border border3 = new Border();
+                        border3.BorderThickness = new Thickness(0.5);
+                        border3.ToolTip = 1;
+                        border3.BorderBrush = Brushes.Black;
+                        grid.Children.Add(border3);
+                        border3.SetValue(Grid.RowProperty, intGridRow - 1);
+                        border3.SetValue(Grid.ColumnProperty, intTotal);
+                        border3.SetValue(Grid.ColumnSpanProperty, intColumnSpan);
+                    }
+
                 }
                 else
                 {
@@ -301,6 +339,29 @@ namespace biaotouDemo
 
         private void InsertData()
         {
+
+            #region 表头测试
+
+            Bt4Datatable.Columns.Add("FatherID");
+            Bt4Datatable.Columns.Add("ID");
+            Bt4Datatable.Columns.Add("Name");
+
+            DataRow dr200 = Bt4Datatable.NewRow();
+            dr200["FatherID"] = 0;
+            dr200["ID"] = 0;
+            dr200["Name"] = "MAX大变身";
+            Bt4Datatable.Rows.Add(dr200);
+
+            DataRow dr201 = Bt4Datatable.NewRow();
+            dr201["FatherID"] = 0;
+            dr201["ID"] = 1;
+            dr201["Name"] = "HYPER大变身";
+            Bt4Datatable.Rows.Add(dr201);
+
+            #endregion 表头测试
+
+            //-----------------------------------------
+
             #region 表头第一列
             Bt1Datatable.Columns.Add("FatherID");
             Bt1Datatable.Columns.Add("ID");
@@ -319,13 +380,13 @@ namespace biaotouDemo
             Bt1Datatable.Rows.Add(dr101);
 
             DataRow dr102 = Bt1Datatable.NewRow();
-            dr102["FatherID"] = 0;
+            dr102["FatherID"] = 1;
             dr102["ID"] = 2;
             dr102["Name"] = "铭杰";
             Bt1Datatable.Rows.Add(dr102);
 
             DataRow dr103 = Bt1Datatable.NewRow();
-            dr103["FatherID"] = 0;
+            dr103["FatherID"] = 1;
             dr103["ID"] = 3;
             dr103["Name"] = "荷叶";
             Bt1Datatable.Rows.Add(dr103);
@@ -535,6 +596,7 @@ namespace biaotouDemo
 
             #endregion datagrid内容
 
+            DsDataSet.Tables.Add(Bt4Datatable);
             DsDataSet.Tables.Add(Bt1Datatable);
             DsDataSet.Tables.Add(Bt2Datatable);
             DsDataSet.Tables.Add(Bt3Datatable);
