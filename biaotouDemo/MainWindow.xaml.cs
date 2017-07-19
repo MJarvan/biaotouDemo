@@ -101,20 +101,54 @@ namespace biaotouDemo
                     AddToptbiaotou(DsDataSet.Tables[i], DsDataSet.Tables[i + 1], i);
                 }
             }
-            AddDataGrid(DsDataSet.Tables[intTableCount - 1]);
+            AddDataGrid();
+            AddTotalbiaotou();
+        }
+
+        /// <summary>
+        /// 生成合计栏
+        /// </summary>
+        private void AddTotalbiaotou()
+        {
+            int intGridColumns = grid.ColumnDefinitions.Count;
+            for (int i = 0; i < intGridColumns; i++)
+            {
+                ColumnDefinition cd = new ColumnDefinition();
+                GridLength width = new GridLength(listDoubleWidth[i]);
+                cd.Width = width;
+                totalgrid.ColumnDefinitions.Add(cd);
+
+                if(i == 0)
+                {
+                    TextBlock textblock = new TextBlock();
+                    textblock.ToolTip = i;
+                    textblock.Text = "合计：";
+                    textblock.Margin = new Thickness(10);
+                    textblock.VerticalAlignment = VerticalAlignment.Center;
+                    textblock.HorizontalAlignment = HorizontalAlignment.Center;
+
+                    totalgrid.Children.Add(textblock);
+                    textblock.SetValue(Grid.RowProperty, i);
+                    textblock.SetValue(Grid.ColumnProperty, i);
+                    textblock.SetValue(Grid.ColumnSpanProperty, 2);
+                }
+            }
         }
 
         /// <summary>
         /// 增加datagrid数据
         /// </summary>
-        private void AddDataGrid(DataTable dt)
+        private void AddDataGrid()
         {
+            //刷新界面拿到grid每一列的宽
             DoEvents();
-            for (int i = 0; i < dt.Rows.Count; i++)
+            int intGridColumns = grid.ColumnDefinitions.Count;
+            for (int i = 0; i < intGridColumns; i++)
             {
                 double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
                 listDoubleWidth.Add(doubleWidth);
             }
+            //添加自动换行和调整字体
             for (int j = 0; j < DgDatatable.Columns.Count; j++)
             {
                 string strName = DgDatatable.Columns[j].ColumnName;
@@ -122,10 +156,34 @@ namespace biaotouDemo
                 col.ElementStyle = FindResource("wrapCellStyle") as Style;
                 this.datagrid.Columns.Add(col);
             }
-            datagrid.ItemsSource = DgDatatable.DefaultView;
-            for (int i = 0; i < listDoubleWidth.Count; i++)
+
+            //计算累计得分
+            for (int n = 0; n < DgDatatable.Rows.Count; n++)
             {
-                datagrid.Columns[i].Width = listDoubleWidth[i];
+                int intTotalPoint = 0;
+                for (int m = 0; m < intGridColumns; m++)
+                {
+                    string strName = datagrid.Columns[m].Header.ToString().Trim();
+                    if (strName.Contains("得分") == true)
+                    {
+
+                        try
+                        {
+                            intTotalPoint = intTotalPoint + Convert.ToInt32(DgDatatable.Rows[n][m].ToString().Trim());
+                        }
+                        catch
+                        {
+                            DgDatatable.Rows[n][m] = intTotalPoint;
+                        }
+
+                    }
+                }
+            }
+
+            datagrid.ItemsSource = DgDatatable.DefaultView;
+            for (int k = 0; k < listDoubleWidth.Count; k++)
+            {
+                datagrid.Columns[k].Width = listDoubleWidth[k];
             }
         }
 
@@ -190,7 +248,7 @@ namespace biaotouDemo
                 textblock.HorizontalAlignment = HorizontalAlignment.Center;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(0.5);
+                border.BorderThickness = new Thickness(0.4);
                 border.BorderBrush = Brushes.Black;
                 border.Name = "border" + str + i.ToString();
                 border.ToolTip = 1;
@@ -228,7 +286,7 @@ namespace biaotouDemo
                 textblock.TextWrapping = TextWrapping.Wrap;
 
                 Border border = new Border();
-                border.BorderThickness = new Thickness(0.5);
+                border.BorderThickness = new Thickness(0.4);
                 border.BorderBrush = Brushes.Black;
                 border.Name = "border" + str + i.ToString();
                 border.Tag = intFatherID;
@@ -272,7 +330,7 @@ namespace biaotouDemo
                     for (int k = intGridRow; k < DsDataSet.Tables.Count - 1; k++)
                     {
                         Border border2 = new Border();
-                        border2.BorderThickness = new Thickness(0.5);
+                        border2.BorderThickness = new Thickness(0.4);
                         border2.ToolTip = 1;
                         border2.BorderBrush = Brushes.Black;
                         grid.Children.Add(border2);
@@ -294,7 +352,7 @@ namespace biaotouDemo
                     if ( boolTest == false )
                     {
                         Border border3 = new Border();
-                        border3.BorderThickness = new Thickness(0.5);
+                        border3.BorderThickness = new Thickness(0.25);
                         border3.ToolTip = 1;
                         border3.BorderBrush = Brushes.Black;
                         grid.Children.Add(border3);
@@ -421,7 +479,7 @@ namespace biaotouDemo
             DataRow dr3 = Bt2Datatable.NewRow();
             dr3["FatherID"] = 2;
             dr3["ID"] = 3;
-            dr3["Name"] = "经济指标25分";
+            dr3["Name"] = "经济指标30分";
             Bt2Datatable.Rows.Add(dr3);
 
             DataRow dr4 = Bt2Datatable.NewRow();
@@ -433,7 +491,7 @@ namespace biaotouDemo
             DataRow dr50 = Bt2Datatable.NewRow();
             dr50["FatherID"] = 3;
             dr50["ID"] = 5;
-            dr50["Name"] = "累计得分";
+            dr50["Name"] = "累计得分60分";
             Bt2Datatable.Rows.Add(dr50);
 
             #endregion 表头第二列
@@ -573,26 +631,47 @@ namespace biaotouDemo
             DgDatatable.Columns.Add("费用成本率", typeof(string));
             DgDatatable.Columns.Add("费用成本率得分", typeof(int));
             DgDatatable.Columns.Add("药品比得分", typeof(int));
+            DgDatatable.Columns.Add("累计得分", typeof(int));
 
             DataRow myDr = DgDatatable.NewRow();
             myDr["科室"] = "儿科";
             myDr["考核项目"] = "bugster切除手术";
             myDr["出科人数标准"] = 4;
-            myDr["出科人数标准得分"] = 84;
+            myDr["出科人数标准得分"] = 4;
             myDr["手术费"] = 4396;
-            myDr["手术费得分"] = 88;
+            myDr["手术费得分"] = 4;
             myDr["科内手术室"] = "手术室5";
-            myDr["科内手术室得分"] = 90;
+            myDr["科内手术室得分"] = 2;
             myDr["病床使用率"] = "99.9%";
-            myDr["病床使用率得分"] = 88;
+            myDr["病床使用率得分"] = 5;
             myDr["月业务收入"] = 85000;
-            myDr["月业务收入得分"] = 85;
+            myDr["月业务收入得分"] = 5;
             myDr["结余额"] = 85000;
-            myDr["结余额得分"] = 85;
-            myDr["费用成本率"] = 85000;
-            myDr["费用成本率得分"] = 85;
-            myDr["药品比得分"] = 75;
+            myDr["结余额得分"] = 8;
+            myDr["费用成本率"] = "85%";
+            myDr["费用成本率得分"] = 5;
+            myDr["药品比得分"] = 7;
             DgDatatable.Rows.Add(myDr);
+
+            DataRow myDr2 = DgDatatable.NewRow();
+            myDr2["科室"] = "心脏内科";
+            myDr2["考核项目"] = "通波仔";
+            myDr2["出科人数标准"] = 10;
+            myDr2["出科人数标准得分"] = 5;
+            myDr2["手术费"] = 25764;
+            myDr2["手术费得分"] = 5;
+            myDr2["科内手术室"] = "手术室6";
+            myDr2["科内手术室得分"] = 3;
+            myDr2["病床使用率"] = "99.9%";
+            myDr2["病床使用率得分"] = 4;
+            myDr2["月业务收入"] = 200000;
+            myDr2["月业务收入得分"] = 8;
+            myDr2["结余额"] = 78554;
+            myDr2["结余额得分"] = 6;
+            myDr2["费用成本率"] = "85%";
+            myDr2["费用成本率得分"] = 8;
+            myDr2["药品比得分"] = 6;
+            DgDatatable.Rows.Add(myDr2);
 
             #endregion datagrid内容
 

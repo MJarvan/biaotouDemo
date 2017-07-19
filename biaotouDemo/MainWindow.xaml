@@ -9,6 +9,8 @@
         Height="600" Width="1600" Title="表头demo" FontSize="15" Loaded="Window_Loaded">
     <Window.Resources>
         <Style x:Key="wrapCellStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
     </Window.Resources>
@@ -17,13 +19,19 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid  Grid.Row="0" Name="grid">
 
             </Grid>
-            <DataGrid Name="datagrid" Grid.Row="2" HeadersVisibility="None" CanUserAddRows="False" AutoGenerateColumns="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" CanUserSortColumns="False">
+            <DataGrid Name="datagrid" Grid.Row="1" HeadersVisibility="None" CanUserAddRows="False" AutoGenerateColumns="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" CanUserSortColumns="False">
 
             </DataGrid>
+            <Border Grid.Row="2" BorderThickness="0.5" BorderBrush="Black">
+                <Grid   Name="totalgrid">
+
+                </Grid>
+            </Border>
         </Grid>
     </ScrollViewer>
 </Window>
