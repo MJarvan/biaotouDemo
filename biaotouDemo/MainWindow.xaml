@@ -20,6 +20,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
             <Grid  Grid.Row="0" Name="grid">
 
@@ -32,6 +33,9 @@
 
                 </Grid>
             </Border>
+            <StackPanel Name="stackpanel" Orientation="Horizontal" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center">
+                
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </Window>
