@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -77,18 +78,18 @@ namespace biaotouDemo
 
         public static int intTotal = 0;
 
-        private static DispatcherOperationCallback exitFrameCallback = new DispatcherOperationCallback(ExitFrame);
-
+		private bool boolAddList = false;
         #endregion 属性
 
         public MainWindow()
         {
             InitializeComponent();
-        }
+		}
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            InsertData();
+			AddListen();
+			InsertData();
             int intTableCount = DsDataSet.Tables.Count;
             for (int i = intTableCount - 1; i >= 0; i--)
             {
@@ -102,7 +103,7 @@ namespace biaotouDemo
                 }
             }
             AddDataGrid();
-            AddTotalbiaotou();
+            //AddTotalbiaotou();
             AddPage();
             InitComboBox();
         }
@@ -112,11 +113,12 @@ namespace biaotouDemo
         /// </summary>
         private void AddTotalbiaotou()
         {
-            int intGridColumns = grid.ColumnDefinitions.Count;
-            for (int i = 0; i < intGridColumns; i++)
+			int intGridColumns = grid.ColumnDefinitions.Count;
+
+			for(int i = 0; i < intGridColumns; i++)
             {
                 ColumnDefinition cd = new ColumnDefinition();
-                GridLength width = new GridLength(listDoubleWidth[i]);
+                GridLength width = new GridLength(datagrid.Columns[i].Width.Value);
                 cd.Width = width;
                 totalgrid.ColumnDefinitions.Add(cd);
 
@@ -178,24 +180,49 @@ namespace biaotouDemo
         private void AddDataGrid()
         {
             //刷新界面拿到grid每一列的宽
-            DoEvents();
             int intGridColumns = grid.ColumnDefinitions.Count;
-            for (int i = 0; i < intGridColumns; i++)
-            {
-                double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
-                listDoubleWidth.Add(doubleWidth);
-            }
-            //添加自动换行和调整字体
-            for (int j = 0; j < DgDatatable.Columns.Count; j++)
-            {
-                string strName = DgDatatable.Columns[j].ColumnName;
-                DataGridTextColumn col = new DataGridTextColumn() { Header = strName, Binding = new Binding() { Path = new PropertyPath((strName ?? "").ToString().Trim()), } };
-                col.ElementStyle = FindResource("wrapCellStyle") as Style;
-                this.datagrid.Columns.Add(col);
-            }
+			for(int i = 0;i < intGridColumns;i++)
+			{
+				double doubleWidth = grid.ColumnDefinitions[i].ActualWidth;
+				listDoubleWidth.Add(doubleWidth);
+			}
+			//添加tooltip和调整字体
+			foreach(DataColumn dc in DgDatatable.Columns)
+			{
+				DataGridTemplateColumn column = new DataGridTemplateColumn() { Width = DataGridLength.Auto,Header = dc.ColumnName };
+				DataTemplate temp = new DataTemplate();
 
-            //计算累计得分
-            for (int n = 0; n < DgDatatable.Rows.Count; n++)
+				FrameworkElementFactory grid = new FrameworkElementFactory(typeof(Grid));
+				FrameworkElementFactory textBox = new FrameworkElementFactory(typeof(TextBox));
+				FrameworkElementFactory textBlock= new FrameworkElementFactory(typeof(TextBlock));
+				Binding binding = new Binding(dc.ColumnName);
+				binding.Mode = BindingMode.TwoWay;
+
+				textBox.SetBinding(TextBox.TextProperty,binding);
+				textBox.SetBinding(TextBox.ToolTipProperty,binding);
+				textBox.SetValue(TextBox.HorizontalAlignmentProperty,HorizontalAlignment.Center);
+				textBox.SetValue(TextBox.VerticalAlignmentProperty,VerticalAlignment.Center);
+				textBox.SetValue(TextBox.VisibilityProperty,Visibility.Collapsed);
+				//textBox.SetValue(TextBox.WidthProperty,double.NaN);
+
+				textBlock.SetBinding(TextBlock.TextProperty,binding);
+				textBlock.SetBinding(TextBlock.ToolTipProperty,binding);
+				//textBlock.SetValue(TextBlock.HorizontalAlignmentProperty,HorizontalAlignment.Center);
+				textBlock.SetValue(TextBlock.VerticalAlignmentProperty,VerticalAlignment.Center);
+
+				grid.AppendChild(textBlock);
+				grid.AppendChild(textBox);
+
+
+				temp.VisualTree = grid;
+				column.CellTemplate = temp;
+				this.datagrid.Columns.Add(column);
+			}
+
+			this.datagrid.MouseDoubleClick += Datagrid_MouseDoubleClick;
+
+			//计算累计得分
+			for (int n = 0; n < DgDatatable.Rows.Count; n++)
             {
                 int intTotalPoint = 0;
                 for (int m = 0; m < intGridColumns; m++)
@@ -216,20 +243,53 @@ namespace biaotouDemo
                     }
                 }
             }
-            datagrid.ItemsSource = DgDatatable.DefaultView;
-            for (int k = 0; k < listDoubleWidth.Count; k++)
-            {
-                datagrid.Columns[k].Width = listDoubleWidth[k];
-            }
-        }
+			datagrid.ItemsSource = DgDatatable.DefaultView;
+		}
 
-        #region 表头
+		private void Datagrid_MouseDoubleClick(object sender,MouseButtonEventArgs e)
+		{
+			Point aP = e.GetPosition(this.datagrid);
+			IInputElement obj = this.datagrid.InputHitTest(aP);
+			DependencyObject target = obj as DependencyObject;
 
-        /// <summary>
-        /// 添加底层表头
-        /// </summary>
-        /// <param name="dt"></param>
-        private void AddBottombiaotou(DataTable dt , int intGridRow)
+			while(target != null)
+			{
+				if(target is Grid)
+				{
+					DependencyObject targetBlock = VisualTreeHelper.GetChild(target,0);
+					DependencyObject targetBox = VisualTreeHelper.GetChild(target,1);
+					double width = ((Grid)target).ActualWidth;
+					targetBlock.SetValue(TextBlock.VisibilityProperty,Visibility.Collapsed);
+					targetBox.SetValue(TextBox.VisibilityProperty,Visibility.Visible);
+					targetBox.SetValue(TextBox.WidthProperty,width);
+
+					break;
+				}
+				else if(target is TextBlock || target is TextBox)
+				{
+					target = VisualTreeHelper.GetParent(target);
+				}
+				else
+				{
+					try
+					{
+						target = VisualTreeHelper.GetChild(target,0);
+					}
+					catch
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		#region 表头
+
+		/// <summary>
+		/// 添加底层表头
+		/// </summary>
+		/// <param name="dt"></param>
+		private void AddBottombiaotou(DataTable dt , int intGridRow)
         {
             int intTableCount = DsDataSet.Tables.Count;
 
@@ -257,7 +317,7 @@ namespace biaotouDemo
                 if (str == string.Empty)
                 {
                     ColumnDefinition cd = new ColumnDefinition();
-                    GridLength width = new GridLength(35);
+                    GridLength width = new GridLength(100);
                     cd.Width = width;
                     grid.ColumnDefinitions.Add(cd);
                 }
@@ -319,7 +379,6 @@ namespace biaotouDemo
                 textblock.Margin = new Thickness(10);
                 textblock.VerticalAlignment = VerticalAlignment.Center;
                 textblock.HorizontalAlignment = HorizontalAlignment.Center;
-                textblock.TextWrapping = TextWrapping.Wrap;
 
                 Border border = new Border();
                 border.BorderThickness = new Thickness(0.4);
@@ -931,37 +990,82 @@ namespace biaotouDemo
             return null;
         }
 
-        /// <summary>
-        /// 刷新界面
-        /// </summary>
-        public static void DoEvents()
-        {
-            DispatcherFrame nestedFrame = new DispatcherFrame();
-            DispatcherOperation exitOperation = Dispatcher.CurrentDispatcher.BeginInvoke
-            (DispatcherPriority.Background,exitFrameCallback, nestedFrame);
-            Dispatcher.PushFrame(nestedFrame);
-            if (exitOperation.Status != DispatcherOperationStatus.Completed)
-            {
-                exitOperation.Abort();
-            }
-        }
-        private static Object ExitFrame(Object state)
-        {
-            DispatcherFrame frame = state as DispatcherFrame;
-            frame.Continue = false;
-            return null;
-        }
+		/// <summary>
+		/// 添加监听
+		/// </summary>
+		public void AddListen()
+		{
+			DependencyPropertyDescriptor descriptor = DependencyPropertyDescriptor.FromProperty(FrameworkElement.ActualWidthProperty,typeof(ColumnDefinition));
+			descriptor.AddValueChanged(this.grid,delegate
+			{
+				for(int i = 0;i < this.grid.ColumnDefinitions.Count;i++)
+				{
+					if(listDoubleWidth[i] == 0)
+					{
+						listDoubleWidth[i] = this.grid.ColumnDefinitions[i].ActualWidth;
+					}
+					else
+					{
+						return;
+					}
+				}
+				AddList();
+			});
+		}
 
-        #endregion 辅助函数
+		private void AddList()
+		{
+			if(boolAddList == false)
+			{
+				//调整列宽度
+				int intGridColumns = grid.ColumnDefinitions.Count;
 
-        #region 分页
+				for(int k = 0;k < intGridColumns;k++)
+				{
+					datagrid.Columns[k].Width = listDoubleWidth[k];
+				}
 
-        #region 添加分页控件
+				boolAddList = true;
+			}
+			else
+			{
+				return;
+			}
+		}
 
-        /// <summary>
-        /// 添加分页控件
-        /// </summary>
-        private void AddPage()
+		//// Dependency Property Declaration
+		//private static DependencyPropertyKey ElementActualWidthPropertyKey = DependencyProperty.RegisterReadOnly("ElementActualWidth",typeof(double),typeof(double),new PropertyMetadata());
+		//public static DependencyProperty ElementActualWidthProperty = ElementActualWidthPropertyKey.DependencyProperty;
+		//public double ElementActualWidth
+		//{
+		//	get
+		//	{
+		//		return (double)GetValue(ElementActualWidthProperty);
+		//	}
+		//}
+		//private void SetActualWidth(double value)
+		//{
+		//	SetValue(ElementActualWidthPropertyKey,value);
+		//}
+
+		// Dependency Property Callback
+		// Called when this.MyElement.ActualWidth is changed
+		//private void OnActualWidthChanged(object sender,Eventargs e)
+		//{
+		//	this.SetActualWidth(this.MyElement.ActualWidth);
+		//}
+
+
+		#endregion 辅助函数
+
+		#region 分页
+
+		#region 添加分页控件
+
+		/// <summary>
+		/// 添加分页控件
+		/// </summary>
+		private void AddPage()
         {
 
             ComboBox combobox = new ComboBox();
@@ -1307,6 +1411,6 @@ namespace biaotouDemo
             textBoxPageNumber.Text = strNumber;
         }
 
-        #endregion
+        #endregion 分页
     }
 }

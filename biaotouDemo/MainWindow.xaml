@@ -13,7 +13,10 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
-    </Window.Resources>
+		<Style x:Key="tooltipStyle" TargetType="{x:Type DataGridCell}">
+			<Setter Property="ToolTip" Value="None"/>
+		</Style>
+	</Window.Resources>
     <ScrollViewer HorizontalScrollBarVisibility="Auto">
         <Grid>
             <Grid.RowDefinitions>
